@@ -94,6 +94,12 @@ dim(df10) # confirm dimensions of matrix
 
 # create person to person matrix using t()
 df11 <- df10 %*% t(df10)
+
+library(igraph)
+g <- graph_from_adjacency_matrix(df11)
+plot(g, layout=layout.fruchterman.reingold, edge.arrow.size=0)
+
+
 ```
 
 
