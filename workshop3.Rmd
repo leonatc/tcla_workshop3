@@ -1,0 +1,101 @@
+
+
+## Part III
+
+Now practice with data from our class. Please create a **person-network** with the data set 
+
+hudk4050-classes.csv
+
+To create this network you will need to create a person-class matrix using the tidyr functions and then create a person-person matrix using `t()`. 
+You will then need to plot a matrix rather than a data frame using igraph.
+
+```{r}
+df <- read.csv("HUDK4050-2018-classes.csv")
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+# slice/subset rows
+df2 <- df[-c(1,2), ]
+df2 <- slice(df, -(1:2))
+
+# select columns
+df3 <- select(df2, Q8:Q6)
+df3 <- select(df2, Q8, Q9, Q1, Q3, Q4, Q5, Q6, Q7)
+df3 <- df[,15:21]
+
+# subset rows and columns
+df4 <- df[-c(1,2), 15:22]
+
+# change header / variable names
+colnames(df4) <- c("First Name", "Last Name", "Class 1", "Class 2", "Class 3", "Class 4", "Class 5")
+df4 <- rename(df4, "First Name" = Q8)
+names(df4) <- unlist(df[1,15:22])
+
+# clean spaces 
+df4$`Class 1` <- gsub('\\s+', '', df4$`Class 1`)
+df4$`Class 2` <- gsub('\\s+', '', df4$`Class 2`)
+df4$`Class 3` <- gsub('\\s+', '', df4$`Class 3`)
+df4$`Class 4` <- gsub('\\s+', '', df4$`Class 4`)
+df4$`Class 5` <- gsub('\\s+', '', df4$`Class 5`)
+df4$`Class 6` <- gsub('\\s+', '', df4$`Class 6`)
+
+# change variable to character
+df4$`Class 1` <- as.character(df4$`Class 1`)
+
+# change dataframe to character dataframe
+df4[] <- lapply(df4, as.character)
+
+# this won't work on factors, must change to characters
+df4$`Class 1` <- gsub(" ", "", df4$`Class 1`)
+df4$`Class 2` <- gsub(" ", "", df4$`Class 2`)
+df4$`Class 3` <- gsub(" ", "", df4$`Class 3`)
+df4$`Class 4` <- gsub(" ", "", df4$`Class 4`)
+df4$`Class 5` <- gsub(" ", "", df4$`Class 5`)
+df4$`Class 6` <- gsub(" ", "", df4$`Class 6`)
+
+# this didn't work during workshop
+for (row in 1:ncol(df4)) {
+  for (col in 3:nrow(df4)) {
+    df[col,row] <- gsub('\\s+', '', df4[col,row])
+  }
+}
+
+# combine first and last name
+df5 <- unite(df4, "Name", "First Name", "Last Name")
+
+# delete empty row
+df6 <- filter(df5, Name != "_")
+
+# create two variables: student_name, course_name
+df7 <- gather(df6, key=class, n, 2:7, na.rm=TRUE) %>% select(-class)
+df7 <- filter(df7, n > " ")
+
+# remove duplicate students
+df8 <- unique(df7)
+```
+
+# Goal: You will then need to plot a matrix rather than a data frame using igraph.
+
+```{r}
+# create person to class matrix
+df8$value <- 1 # add a value column to spread by
+df9 <- spread(df8, n, value, fill=0) 
+df10 <- select(df9, -"Name") 
+# %>% as.matrix()
+row.names(df10) <- df9[,1]
+df10 <- as.matrix(df10)
+class(df10) # confirm matrix class
+dim(df10) # confirm dimensions of matrix
+
+# create person to person matrix using t()
+df11 <- df10 %*% t(df10)
+```
+
+
+
+
